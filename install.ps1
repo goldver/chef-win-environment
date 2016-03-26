@@ -88,17 +88,11 @@ If($webDownload){
 	InstallGit
 }else{
 	If(!(Test-Path $installGitPath)){
-# Currently I have a bug of Git downloading from https://github.com/git-for-windows/git/releases/download/v2.7.4.windows.1	
-<#
 		Set-Location $srcPath
-		Write-Host "Downloading $gitFile... Please wait."
-			
-		DownloadFile $source $destination
+		Write-Host "Downloading $gitFile... Please wait."			
+		Invoke-WebRequest $source -OutFile $destination #Changed download way to overcome bug of non downloading in regular way
 		InstallGit
 		Remove-Item $destination
-#>
-		Set-Location "$srcPath\Packages"
-		InstallGit
 	}else{
 		Write-Host "$gitFile is installed!"
 	}
