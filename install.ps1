@@ -1,6 +1,8 @@
 <# 
+.SYNOPSIS
 This script setting up Chef environment for automation on your local machine
 
+.DESCRIPTION
 You can install it from ready files, saved on your local machine or download from internet any valid version.
 Default Installation is by local files:
 $webDownload = 1
@@ -14,6 +16,7 @@ Any valid version, you can find on the next links:
 * Chef: 'https://downloads.chef.io/chef-client/windows/'
 * Ruby & DevKit: 'http://dl.bintray.com/oneclick/rubyinstaller/'
 
+.EXAMPLE
 Just set your file/version, for example:
 
 * $gitFile = "Git-2.7.4-64-bit.exe"
