@@ -1,15 +1,32 @@
 <# 
-Readme: this script dedicates to set Chef environment on your local machine. 
-You can install from ready files or download from internet any valid version. 
-Default Installation is via ready files. If you wish install from Internet,
-Just set $webDownload = 0.
-Note: you can choose any supported version of Ruby or Chef and set it for downloading 
+This script setting up Chef environment for automation on your local machine
+
+You can install it from existing files, saved on your local machine or download from internet any valid version.
+Default Installation is by existing files:
+$webDownload = 1
+
+If you wish to install it from Internet, just set:
+$webDownload = 0
+
+Any valid version, you can find on the next links of relevant Vendors:
+
+* Git: 'https://github.com/git-for-windows/git/releases/tag/v2.7.4.windows.1'
+* Chef: 'https://downloads.chef.io/chef-client/windows/'
+* Ruby & DevKit: 'http://dl.bintray.com/oneclick/rubyinstaller/'
+
+Just set your file/version, for example:
+
+* $gitFile = "Git-2.7.4-64-bit.exe"
+* $chefClientFile = "chef-client-12.7.2-1-x86.msi"
+* $rubyFile = "rubyinstaller-2.2.4.exe"
+* $installRubyPath = "C:\Ruby22"
+* $devKitFile = "DevKit-mingw64-32-4.7.2-20130224-1151-sfx.exe"	
 #>
 
 # Pre-configurations
 Import-Module BitsTransfer
 
-$webDownload = 1 # Set "1" for ready installation files or "0" for internet downloading and installation
+$webDownload = 0 # Set "1" for ready installation files or "0" for internet downloading and installation
 
 $srcDir = "ChefEnv"
 $srcPath = "$env:HOMEPATH\Desktop\$srcDir"
@@ -119,7 +136,7 @@ If($webDownload){
 		Write-Host "Downloading $chefClientFile... Please wait."
 		DownloadFile $source $destination
 		InstallChefClient
-		Remove-Item $destination
+		#Remove-Item $destination
 	}else{
 		Write-Host "$chefClientFile is installed!"
 	}
@@ -159,7 +176,7 @@ If($webDownload){
 		Write-Host "Downloading $rubyFile... Please wait."
 		DownloadFile $source $destination
 		InstallRuby
-		Remove-Item $destination
+		#Remove-Item $destination
 	}else{
 		Write-Host "$rubyFile is installed!"
 	}
@@ -189,7 +206,7 @@ Function ExtractDevKit
 			Write-Host "Extracting $devKitFile... Please wait."		
 			Start-process $destination " -s -y" -Wait # Unzip 7zip archive
 			Write-Host "$devKitFile successfully uxtracted to $extractDir"
-			Remove-Item $destination
+			#Remove-Item $destination
 		}else{
 			Write-Host "$devKitFile already was unzipped"
 			LogWrite "$devKitFile already was unzipped"
@@ -215,7 +232,6 @@ If($webDownload){
 		Write-Host "Downloading $devKitFile... Please wait."
 		DownloadFile $source $destination
 		ExtractDevKit
-		Write-Host "$devKitFile successfully uxtracted to $extractDir"
 	}else{
 		Write-Host "$devKitFile already was unzipped"
 		LogWrite "$devKitFile already was unzipped"
@@ -230,12 +246,9 @@ Write-Host ------------------------------------------------------------
 Try{
 	Set-Location $extractDir
 	ruby dk.rb init
-	Write-Host ---- Init Done ----
 	ruby dk.rb review
-	Write-Host ---- Review Done ----
 	ruby dk.rb install
-	Write-Host ---- Installation Done ----
-
+	Start-Sleep -s 10 # Waiting for previous action
 	gem install ohai -v 7.4.0 --no-rdoc --no-ri
 }Catch{
 	Write-Host "Error Ruby Configuration!"
