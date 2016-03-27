@@ -6,7 +6,7 @@ echo -----------------------------------------------------------------
 echo.
 
 echo Running Powershell script...
-::set HTTPS_PROXY=http://proxy.wdf.sap.corp:8080
+::set HTTPS_PROXY=http://proxy.corp:8080
 
 :: Calling to PS script
 PowerShell.exe -Executionpolicy bypass -File %~dp0uninstall.ps1
