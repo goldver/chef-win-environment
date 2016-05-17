@@ -1,6 +1,6 @@
 Chef Environment Powershell script
 ==================
-This script setting up Chef environment for automation on your local machine. <br>
+This script setting up Chef environment (Chef client, Git, Ruby) for automation on your local machine. <br>
 
 Usage
 ==================
