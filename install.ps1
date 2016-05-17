@@ -29,10 +29,10 @@ Just set your file/version, for example:
 # Pre-configurations
 Import-Module BitsTransfer
 
-$webDownload = 1 # Set "1" for ready installation files or "0" for internet downloading and installation
+$webDownload = 0 # Set "1" for ready installation files or "0" for internet downloading and installation
 
-$srcDir = "ChefEnv"
-$srcPath = "$env:HOMEPATH\Desktop\$srcDir"
+$srcDir = "ChefEnv\Packages"
+$srcPath = "$env:HOMEPATH\Downloads"
 
 $gitFile = "Git-2.7.4-64-bit.exe"
 $chefClientFile = "chef-client-12.7.2-1-x86.msi"
@@ -59,17 +59,23 @@ Write-Host ------------------------------------------------------------
 Write-Host ----                        Git                         ----
 Write-Host ------------------------------------------------------------
 
-$destination = "$gitFile"
+$destination = $gitFile
 $source = "https://github.com/git-for-windows/git/releases/download/v2.7.4.windows.1/Git-2.7.4-64-bit.exe"
-$installGitPath = "C:\Program Files\Git"
+$installGitPath = "$env:programfiles\Git"
 
 Function InstallGit
 {
 	Try{
 		If(!(Test-Path $installGitPath)){			
 			Write-Host "Installing $destination... Please wait."
-			Start-process $destination "/silent" -Wait #/log=$env:HOMEPATH\Downloads\GitInstall.log 
-			
+    
+            # This if statememnt is to overcome bug wist path to file on Win 8.1
+            If($webDownload){
+                Start-process "$srcPath\$srcDir\$destination" "/silent" -Wait #/log=$env:HOMEPATH\Downloads\GitInstall.log 
+            }else{
+                Start-process "$srcPath\$destination" "/silent" -Wait #/log=$env:HOMEPATH\Downloads\GitInstall.log
+	        }
+
 			Write-Host "Configure GIT environment variable."
 			$env:Path+=";$installGitPath\cmd"
 			[environment]::SetEnvironmentVariable('path',$env:Path,'User')
@@ -84,13 +90,16 @@ Function InstallGit
 }
 
 If($webDownload){
-	Set-Location "$srcPath\Packages"
+	Set-Location "$srcPath\$srcDir\"
 	InstallGit
 }else{
+    Set-Location $srcPath
 	If(!(Test-Path $installGitPath)){
-		Set-Location $srcPath
-		Write-Host "Downloading $gitFile... Please wait."			
-		Invoke-WebRequest $source -OutFile $destination #Changed download way to overcome bug of non downloading in regular way
+		
+        If(!(Test-Path $gitFile)){	
+            Write-Host "Downloading $gitFile... Please wait."		
+		    Invoke-WebRequest $source -OutFile $destination #Changed download way to overcome bug of non downloading in regular way
+        }
 		InstallGit
 		Remove-Item $destination
 	}else{
@@ -103,7 +112,7 @@ Write-Host ------------------------------------------------------------
 Write-Host ----                     Chef Client                    ----
 Write-Host ------------------------------------------------------------
 
-$destination = "$chefClientFile"
+$destination = $chefClientFile
 $install_path = "C:\opscode\chef"
 $source = "https://opscode-omnibus-packages.s3.amazonaws.com/windows/2012r2/i386/$chefClientFile"
 
@@ -125,11 +134,11 @@ Function InstallChefClient
 }
 
 If($webDownload){
-	Set-Location "$srcPath\Packages"
+	Set-Location "$srcPath\$srcDir"
 	InstallChefClient
 }else{	
+    Set-Location $srcPath
 	If(!(Test-Path $install_path)){	 
-		Set-Location $srcPath
 		Write-Host "Downloading $chefClientFile... Please wait."
 		DownloadFile $source $destination
 		InstallChefClient
@@ -144,7 +153,7 @@ Write-Host ------------------------------------------------------------
 Write-Host ----                      Ruby                          ----
 Write-Host ------------------------------------------------------------
 
-$destination = "$rubyFile"
+$destination = $rubyFile
 $source = "http://dl.bintray.com/oneclick/rubyinstaller/$rubyFile"
 
 Function InstallRuby
@@ -165,11 +174,11 @@ Function InstallRuby
 }
 
 If($webDownload){
-	Set-Location "$srcPath\Packages"
+	Set-Location "$srcPath\$srcDir"
 	InstallRuby
 }else{	
+    Set-Location $srcPath
 	If(!(Test-Path "$installRubyPath\bin")){	 
-		Set-Location $srcPath
 		Write-Host "Downloading $rubyFile... Please wait."
 		DownloadFile $source $destination
 		InstallRuby
@@ -181,148 +190,14 @@ If($webDownload){
 
 
 Write-Host ------------------------------------------------------------
-Write-Host ----                    Ruby DevKit                     ----
-Write-Host ------------------------------------------------------------
-
-$extractDir = "$installRubyPath\DevKit"
-$source = "$devKitFile" 
-$destination = "$extractDir\$devKitFile"
-
-If(!(Test-Path $extractDir)){
-	New-Item $extractDir -type directory # Creates Directory for DevKit
-	Start-Sleep -s 5 # Waiting for previous action
-}else{
-	Write-Host "Directory $extractDir exists"
-	LogWrite "Directory $extractDir exists"
-}
-
-Function ExtractDevKit
-{
-	Try{
-		If(!(Test-Path "$extractDir\bin")){
-			Write-Host "Extracting $devKitFile... Please wait."		
-			Start-process $destination " -s -y" -Wait # Unzip 7zip archive
-			Write-Host "$devKitFile successfully uxtracted to $extractDir"
-			Remove-Item $destination
-		}else{
-			Write-Host "$devKitFile already was unzipped"
-			LogWrite "$devKitFile already was unzipped"
-		}
-	}Catch{
-		Write-Host "Error extracting DevKit!"
-		$errorFlag = 1
-	}
-}
-
-If($webDownload){
-	If(!(Test-Path "$extractDir\bin")){
-		Copy-Item "$srcPath\Packages\$devKitFile" $destination -force -Recurse
-		Write-Host "Copying $devKitFile file...please wait..."
-		ExtractDevKit
-	}else{
-		Write-Host "$devKitFile already was copied"
-		LogWrite "$devKitFile already was copied"
-	}
-}else{	
-	$source = "http://dl.bintray.com/oneclick/rubyinstaller/$devKitFile"
-	If(!(Test-Path "$extractDir\bin")){
-		Write-Host "Downloading $devKitFile... Please wait."
-		DownloadFile $source $destination
-		ExtractDevKit
-	}else{
-		Write-Host "$devKitFile already was unzipped"
-		LogWrite "$devKitFile already was unzipped"
-	}
-}
-
-
-Write-Host ------------------------------------------------------------
-Write-Host ----                 Ruby Configuration                 ----
-Write-Host ------------------------------------------------------------
-
-Try{
-	Set-Location $extractDir
-	ruby dk.rb init
-	ruby dk.rb review
-	ruby dk.rb install
-	Start-Sleep -s 10 # Waiting for previous action
-	gem install ohai -v 7.4.0 --no-rdoc --no-ri
-}Catch{
-	Write-Host "Error Ruby Configuration!"
-	LogWrite "Error Ruby Configuration!"
-	$errorFlag = 1
-}
-
-
-Write-Host ------------------------------------------------------------
-Write-Host ----                 Chef Configuration                 ----
-Write-Host ------------------------------------------------------------
-
-$chefFolder = "C:\chef"
-
-Try{
-	If(Test-Path $chefFolder){
-		If(!(Test-Path "$chefFolder\cookbooks")){
-			Write-Host "Copying $chefFolder files"
-			Copy-Item "$srcPath\chef\*" $chefFolder -force -Recurse
-			Write-Host "$chefFolder files succesfuly copied"
-		}else{
-			Write-Host "$chefFolder\cookbooks exist"
-	    }
-	}else{
-		Write-Host "$chefFolder isn't exists"
-		LogWrite "$chefFolder isn't exists"
-	}
-}Catch{
-	Write-Host "Error copying chef folder!"
-	LogWrite "Error copying chef folder!"
-	$errorFlag = 1
-}
-
-$chefOpsCodeFolder = "C:\opscode"
-
-Try{
-	If(!(Test-Path "$chefOpsCodeFolder\chef\bin")){
-		Write-Host "Copying $chefOpsCodeFolder files...please wait..."
-		Copy-Item "$srcPath\opscode\*" $chefOpsCodeFolder -force -Recurse
-		Write-Host "$chefOpsCodeFolder files successfully copied"
-	}else{
-		Write-Host "$chefOpsCodeFolder exists"
-		LogWrite "$chefOpsCodeFolder exists"
-	}
-}Catch{
-	Write-Host "Error copying chef folder!"
-	LogWrite "Error copying chef folder!"
-	$errorFlag = 1
-}
-
-Write-Host ------------------------------------------------------------
-Write-Host ----                 Run Test Cookbook                  ----
-Write-Host ------------------------------------------------------------
-
-Set-Location $chefFolder
-#Start-Sleep -s 10 # Waiting for previous action
-
-Try{	
-	chef-solo -c solo.rb -j solo.json -L c:\chef\chef.log -l info
-}Catch{
-	Write-Host "Error running chef!"
-	LogWrite "Error running chef!"
-	$errorFlag = 1
-}
-
-
-Write-Host ------------------------------------------------------------
 
 
 # Error handling
-If($errorFlag){
+If($errorFlag = 0){
 	Write-Host "Setup has encountered an error`nRefer to setup log: $srcPath"
     LogWrite "Setup has encountered an error`nRefer to setup log: $srcPath"
 }else{
     Write-Host "Setup completed successfully`
-Machine is now configured for Automation!"
-    LogWrite "Setup completed successfully`
 Machine is now configured for Automation!"
 }
 Read-Host -Prompt "Press Enter to exit"

@@ -4,12 +4,16 @@ This script setting up Chef environment (Chef client, Git, Ruby) for automation 
 
 Usage
 ==================
-You can install it from existing files, saved on your local machine or download from internet any valid version. <br>
+You can install all programms from existing files, saved on your local machine or download from internet any valid version. <br>
 Default Installation is by existing files: <br>
 $webDownload = 1
 
 If you wish to install it from Internet, just set: <br>
 $webDownload = 0
+
+Just run an "install.bat" script as administrator
+
+If you wish remove all installed from this script, run an "uninstall.bat" script as administrator, 
 
 Any valid version, you can find on the next links of relevant Vendors: <br>
 
