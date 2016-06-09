@@ -194,6 +194,7 @@ git clone https://github.com/goldver/my_configuration.git
 
 Write-Host ------------------------------------------------------------
 
+gem Install librarian-chef
 
 # Error handling
 If($errorFlag = 0){
