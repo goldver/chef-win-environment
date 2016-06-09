@@ -188,6 +188,9 @@ If($webDownload){
 	}
 }
 
+Write-Host "Downoads a Configuration"
+Set-Location "C:\chef"
+git clone https://github.com/goldver/my_configuration.git
 
 Write-Host ------------------------------------------------------------
 
